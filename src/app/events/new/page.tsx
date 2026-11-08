@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CreateEventForm } from "@/components/create-event-form";
+import { PageShell } from "@/components/page-shell";
 
 export const metadata: Metadata = {
   title: "List an event",
@@ -7,16 +8,13 @@ export const metadata: Metadata = {
 
 export default function NewEventPage() {
   return (
-    <div className="max-w-2xl">
-      <p className="text-xs font-medium uppercase tracking-[0.18em] text-stamp">New event</p>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight">List an event.</h1>
+    <PageShell>
+      <p className="text-[11px] font-medium tracking-[0.22em] text-muted uppercase">New listing</p>
+      <h1 className="mt-3 font-display text-5xl tracking-tight text-ink">List an event</h1>
       <p className="mt-3 max-w-xl text-muted">
-        Put the night on the board. Categories are the labels on a ticket: general, guest, crew,
-        press. Guests pick one when they register.
+        You&apos;ll get a private owner link for labels, the guest list, and the door.
       </p>
-      <div className="mt-8">
-        <CreateEventForm />
-      </div>
-    </div>
+      <CreateEventForm />
+    </PageShell>
   );
 }

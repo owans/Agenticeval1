@@ -1,32 +1,57 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #f3eee6;
-  --ink: #1c1916;
-  --muted: #6d655c;
-  --line: #e3d7c6;
-  --card: #fffdf8;
-  --stamp: #c23b22;
+  --paper: #f3efe6;
+  --card: #fffaf3;
+  --ink: #1c1915;
+  --muted: #6f675c;
+  --line: #e4d9c8;
+  --stamp: #c2412d;
   --pine: #234e3e;
 }
 
 @theme inline {
-  --font-sans: var(--font-outfit);
-  --font-serif: var(--font-fraunces);
   --color-paper: var(--paper);
+  --color-card: var(--card);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
-  --color-card: var(--card);
   --color-stamp: var(--stamp);
   --color-pine: var(--pine);
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+html {
+  color-scheme: light;
 }
 
 body {
-  background: var(--paper);
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(920px 440px at 0% -10%, rgba(194, 65, 45, 0.09), transparent 55%),
+    radial-gradient(720px 380px at 100% 0%, rgba(35, 78, 62, 0.08), transparent 50%);
   color: var(--ink);
 }
 
 ::selection {
   background: #f0c7bf;
+  color: var(--ink);
+}
+
+.admit-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--stamp);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  color: var(--stamp);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
 }

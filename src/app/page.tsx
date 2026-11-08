@@ -2,56 +2,87 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { EventCard } from "@/components/event-card";
 import { HostedEvents } from "@/components/hosted-events";
-import { PageSkeleton } from "@/components/page-skeleton";
+import { PageShell } from "@/components/page-shell";
+import { PanelSkeleton } from "@/components/panel-skeleton";
 import { primaryButtonClass } from "@/components/classes";
 import { listPublicEvents } from "@/lib/store";
+import type { PublicEvent } from "@/lib/types";
 
 export default function HomePage() {
   return (
-    <div>
-      <section className="max-w-2xl">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-stamp">Door list</p>
-        <h1 className="mt-3 font-serif text-5xl leading-[1.05] tracking-tight sm:text-6xl">
-          The night, written down.
-        </h1>
-        <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted">
-          List the event, give each guest a ticket, and check them in when they arrive. Split the
-          room into categories and move people between them.
-        </p>
-      </section>
-
-      <Suspense fallback={<div className="mt-12"><PageSkeleton /></div>}>
+    <PageShell>
+      <p className="text-[11px] font-medium tracking-[0.22em] text-muted uppercase">Tonight&apos;s board</p>
+      <h1 className="mt-3 max-w-xl font-display text-5xl leading-none tracking-tight text-ink sm:text-6xl">
+        The night, listed.
+      </h1>
+      <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted">
+        Put an event on the board, hand guests a ticket, check them in, and sort the list into
+        labels like general, VIP, or press.
+      </p>
+      <div className="mt-6">
+        <Link href="/events/new" className={primaryButtonClass}>
+          List an event
+        </Link>
+      </div>
+      <HostedEvents />
+      <Suspense
+        fallback={
+          <div className="mt-12">
+            <PanelSkeleton lines={5} />
+          </div>
+        }
+      >
         <EventBoard />
       </Suspense>
-      <HostedEvents />
-    </div>
+    </PageShell>
   );
 }
 
 async function EventBoard() {
   const events = await listPublicEvents();
+  const upcoming = events.filter((event) => !event.past);
+  const past = events.filter((event) => event.past).reverse();
 
   if (events.length === 0) {
     return (
-      <div className="mt-12 rounded-2xl border border-dashed border-line bg-card px-6 py-12 text-center">
-        <p className="font-serif text-3xl tracking-tight">No events on the board yet.</p>
-        <p className="mx-auto mt-2 max-w-md text-muted">
-          List the first one. Guests can register, and you can label their tickets from the door
-          list.
+      <section className="mt-12 rounded-[28px] border border-dashed border-line px-6 py-12">
+        <h2 className="font-display text-3xl text-ink">Nothing listed yet.</h2>
+        <p className="mt-2 max-w-md text-muted">
+          When you list an event, it shows up here for guests to take a ticket.
         </p>
-        <Link href="/events/new" className={`${primaryButtonClass} mt-6`}>
-          List an event
-        </Link>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="mt-12 space-y-3">
-      <h2 className="sr-only">Events</h2>
-      {events.map((event) => (
-        <EventCard key={event.id} event={event} />
-      ))}
+    <div className="mt-12 space-y-12">
+      <EventSection title="On the board" events={upcoming} empty="Nothing coming up." />
+      {past.length > 0 ? <EventSection title="Earlier" events={past} /> : null}
     </div>
+  );
+}
+
+function EventSection({
+  title,
+  events,
+  empty,
+}: {
+  title: string;
+  events: PublicEvent[];
+  empty?: string;
+}) {
+  return (
+    <section>
+      <h2 className="text-[11px] font-medium tracking-[0.22em] text-muted uppercase">{title}</h2>
+      {events.length === 0 && empty ? (
+        <p className="mt-3 text-muted">{empty}</p>
+      ) : (
+        <ul className="mt-4 space-y-3">
+          {events.map((event) => (
+            <EventCard key={event.id} event={event} />
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

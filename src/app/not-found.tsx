@@ -1,15 +1,13 @@
 import Link from "next/link";
-import { primaryButtonClass } from "@/components/classes";
+import { PageShell } from "@/components/page-shell";
 
 export default function NotFound() {
   return (
-    <div className="max-w-lg">
-      <p className="text-xs font-medium uppercase tracking-[0.18em] text-stamp">Missing</p>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight">Nothing on that page.</h1>
-      <p className="mt-3 text-muted">The event or ticket may have been mistyped.</p>
-      <Link href="/" className={`${primaryButtonClass} mt-6`}>
-        Back to the board
+    <PageShell>
+      <h1 className="font-display text-4xl text-ink">That page isn&apos;t on the board.</h1>
+      <Link href="/" className="mt-6 inline-flex text-sm text-ink underline">
+        All events
       </Link>
-    </div>
+    </PageShell>
   );
 }

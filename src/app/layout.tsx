@@ -6,13 +6,11 @@ import "./globals.css";
 const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-outfit",
-  display: "swap",
 });
 
 const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-fraunces",
-  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -20,21 +18,20 @@ export const metadata: Metadata = {
     default: "Marquee",
     template: "%s · Marquee",
   },
-  description: "List an event, register guests, label tickets, and check them in.",
+  description: "List an event, label tickets, and check guests in.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${outfit.variable} ${fraunces.variable} h-full antialiased`}>
-      <body className="min-h-full bg-paper font-sans text-ink">
-        <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col px-5 py-6 sm:px-8">
-          <SiteHeader />
-          <div className="flex-1">{children}</div>
-          <footer className="mt-16 border-t border-line pt-6 text-sm text-muted">
-            Marquee keeps the list for the night: who is coming, which ticket they hold, and who
-            is already in.
-          </footer>
-        </div>
+      <body className="flex min-h-dvh flex-col bg-paper font-sans text-ink">
+        <SiteHeader />
+        {children}
+        <footer className="mt-auto border-t border-line/80">
+          <p className="mx-auto w-full max-w-5xl px-5 py-6 text-sm text-muted sm:px-8">
+            Marquee keeps the list, the labels, and the door.
+          </p>
+        </footer>
       </body>
     </html>
   );

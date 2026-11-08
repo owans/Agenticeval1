@@ -1,11 +1,15 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fieldClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/components/classes";
-import { DoorList } from "@/components/door-list";
-import { OwnerKeyBanner } from "@/components/owner-key-banner";
-import { PageSkeleton } from "@/components/page-skeleton";
-import { getManageView } from "@/lib/store";
+import { CategoryManager } from "@/components/category-manager";
+import { CopyPathButton } from "@/components/copy-path-button";
+import { OwnerLock } from "@/components/owner-lock";
+import { PageShell } from "@/components/page-shell";
+import { PanelSkeleton } from "@/components/panel-skeleton";
+import { RememberHosted } from "@/components/remember-hosted";
+import { TicketRoster } from "@/components/ticket-roster";
+import { secondaryButtonClass } from "@/components/classes";
+import { getManageView, getPublicEvent } from "@/lib/store";
 
 export default function ManagePage({
   params,
@@ -15,18 +19,15 @@ export default function ManagePage({
   searchParams: Promise<{ key?: string | string[] }>;
 }) {
   return (
-    <Suspense fallback={<PageSkeleton />}>
-      <ManageView params={params} searchParams={searchParams} />
-    </Suspense>
+    <PageShell>
+      <Suspense fallback={<PanelSkeleton lines={8} />}>
+        <ManageDoor params={params} searchParams={searchParams} />
+      </Suspense>
+    </PageShell>
   );
 }
 
-function first(value: string | string[] | undefined) {
-  if (Array.isArray(value)) return value[0] ?? "";
-  return value ?? "";
-}
-
-async function ManageView({
+async function ManageDoor({
   params,
   searchParams,
 }: {
@@ -34,66 +35,62 @@ async function ManageView({
   searchParams: Promise<{ key?: string | string[] }>;
 }) {
   const { id } = await params;
-  const key = first((await searchParams).key);
-  const view = await getManageView(id, key);
+  const query = await searchParams;
+  const ownerKey = typeof query.key === "string" ? query.key : "";
+  const event = await getPublicEvent(id);
+  if (!event) notFound();
 
+  if (!ownerKey) {
+    return <OwnerLock eventId={id} title={event.title} />;
+  }
+
+  const view = await getManageView(id, ownerKey);
   if (view.kind === "missing") notFound();
-  if (view.kind === "locked") return <OwnerKeyGate eventId={id} hasKey={key.length > 0} />;
+  if (view.kind === "locked") {
+    return <OwnerLock eventId={id} title={event.title} invalid />;
+  }
 
-  const { event, tickets } = view;
+  const categories = view.event.categories.map((category) => ({
+    ...category,
+    checkedIn: view.tickets.filter(
+      (ticket) => ticket.categoryId === category.id && ticket.checkedInAt,
+    ).length,
+  }));
+
+  const ownerPath = `/events/${event.id}/manage?key=${encodeURIComponent(ownerKey)}`;
 
   return (
-    <article>
-      <p className="text-xs font-medium uppercase tracking-[0.18em] text-stamp">Door list</p>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight">{event.title}</h1>
+    <div>
+      <RememberHosted id={event.id} title={event.title} ownerKey={ownerKey} />
+      <p className="text-[11px] font-medium tracking-[0.22em] text-muted uppercase">Door list</p>
+      <h1 className="mt-2 font-display text-5xl tracking-tight text-ink">{event.title}</h1>
       <p className="mt-3 text-muted">
-        {event.whenLabel} · {event.venue}
+        {event.whenLabel}
+        <span aria-hidden="true"> · </span>
+        {event.venue}
       </p>
       <p className="mt-2 text-sm text-muted">
-        {event.registeredCount} registered · {event.checkedInCount} checked in
+        {event.registeredCount} {event.registeredCount === 1 ? "ticket" : "tickets"} · {event.checkedInCount} checked in
       </p>
-      <div className="mt-5 flex flex-wrap gap-3">
+      <div className="mt-5 flex flex-wrap gap-2">
         <Link href={`/events/${event.id}`} className={secondaryButtonClass}>
-          Public page
+          Guest page
         </Link>
-        <Link href={`/events/${event.id}/check-in`} className={secondaryButtonClass}>
-          Guest check-in
-        </Link>
+        <CopyPathButton path={`/events/${event.id}`} label="Copy guest link" copiedLabel="Copied" />
+        <CopyPathButton path={ownerPath} label="Copy owner link" copiedLabel="Copied" />
       </div>
-      <OwnerKeyBanner eventId={event.id} title={event.title} ownerKey={key} />
-      <DoorList
-        eventId={event.id}
-        ownerKey={key}
-        categories={event.categories}
-        tickets={tickets}
-      />
-    </article>
-  );
-}
-
-function OwnerKeyGate({ eventId, hasKey }: { eventId: string; hasKey: boolean }) {
-  return (
-    <form method="get" action={`/events/${eventId}/manage`} className="max-w-md">
-      <p className="text-xs font-medium uppercase tracking-[0.18em] text-stamp">Door list</p>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight">Open the door list.</h1>
-      <p className="mt-3 text-muted">
-        {hasKey
-          ? "That key does not open this door list."
-          : "Enter the owner key from when you listed this event."}
+      <p className="mt-4 max-w-xl text-sm text-muted">
+        This owner link shows guest emails and can move tickets between labels. Keep it private.
       </p>
-      <label className={`${labelClass} mt-6`}>
-        Owner key
-        <input
-          className={fieldClass}
-          name="key"
-          required
-          autoComplete="off"
-          spellCheck={false}
+      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
+        <CategoryManager eventId={event.id} ownerKey={ownerKey} categories={categories} />
+        <TicketRoster
+          eventId={event.id}
+          ownerKey={ownerKey}
+          categories={view.event.categories}
+          tickets={view.tickets}
         />
-      </label>
-      <button type="submit" className={`${primaryButtonClass} mt-5`}>
-        Open door list
-      </button>
-    </form>
+      </div>
+    </div>
   );
 }

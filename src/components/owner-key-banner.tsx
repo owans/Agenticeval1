@@ -30,8 +30,12 @@ export function OwnerKeyBanner({
           type="button"
           className={secondaryButtonClass}
           onClick={async () => {
-            await navigator.clipboard.writeText(ownerKey);
-            setCopied(true);
+            try {
+              await navigator.clipboard.writeText(ownerKey);
+              setCopied(true);
+            } catch {
+              setCopied(false);
+            }
           }}
         >
           {copied ? "Copied" : "Copy key"}
